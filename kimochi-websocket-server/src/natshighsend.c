@@ -4,9 +4,9 @@
     First written date: 2019 05 25
     This file is granted without any warranty
 */
-#include <nats/nats.h>
 #include <stdlib.h>
-
+#include <stdio.h>
+#include <nats/nats.h>
 
 // ----- Variables -----
 natsConnection      *nconns;
@@ -28,10 +28,11 @@ sendmsgq1(char *pesan, char *topic){
     runnit();
     natsStatus stat = NATS_OK;
 
-    printf("Send: %s\n", pesan);
+    printf("Queue Send: %s\n", pesan);
     stat = natsConnection_PublishString(nconns, topic, (const char *) pesan);
-
-    printf("status: %s\n", natsStatus_GetText(stat));
+    if (stat != NATS_OK)
+        {return -1;}
+    printf("squeue status: %s | on topic: %s\n", natsStatus_GetText(stat), topic);
     natsConnection_Destroy(nconns);
     nats_Close();
     return 0;
