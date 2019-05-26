@@ -3,5 +3,6 @@
 *.so
 assets.h
 cert
-[Aa]ssets
-[Bb]ackcode
+assets
+backcode
+worker
