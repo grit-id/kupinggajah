@@ -12,17 +12,19 @@ libprotobuf-dev  libtool autoconf automake
 ```
 
 ### Development Notes:
-Untuk compile NATS client
+Untuk compile Worker
 ```bash
-gcc file.c -L/usr/local/lib -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -lprotobuf-c -o file
+gcc subq1.c natshighsend.c redishigh.c  -L/usr/local/lib -L. -I/usr/local/include -I/usr/local/include/hiredis  -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -lhiredis -o worker1
 ```
-
+## Architecture
+![alt text](https://grit.id/github/kimochi-arch.png)
 ## Status Development:
-Server Kimochi sudah bisa menerima dan mengirim pesan ke NATS Queue.
-![alt text](https://grit.id/github/first_milestone_20190525.png)
+Server Kimochi sudah bisa menerima pesan, meroutingnya, dan client sudah bisa mengambil pesan
+dari pengirim.
+![alt text](https://grit.id/github/first_milestone_20190527.png)
 
-Worker sudah bisa mengambil pesan dari NATS Queue.
-![alt text](https://grit.id/github/first_milestone_sub_20190525.png)
+Worker sudah menjalankan fungsinya sebagai router.
+![alt text](https://grit.id/github/first_milestone_sub_20190527.png)
 
 ## Milestones Pengembangan (dalam progress)
 - Bisa menerima pesan
