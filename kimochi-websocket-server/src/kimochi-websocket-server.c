@@ -9,6 +9,7 @@
 
 #include "natshighsend.h"
 #include "natshighrcv.h"
+#include "redishigh.h"
 
 // Functions Declaration
 void		websocket_connect(struct connection *);
@@ -22,7 +23,8 @@ void		websocket_message(struct connection *, u_int8_t, void *, size_t);
 void		websocket_message_ask(struct connection *, u_int8_t , void *, size_t);
 
 int sendmsgq1(char *pesan, char *topic);
-char *rcvmsgq1(char *topic);
+//char *rcvmsgq1(char *topic);
+char *get_redis(char *key);
 /* Dipanggil kapan pun saat ada koneksi websocket terhubung */
 
 /* Connect End Point start */
@@ -85,9 +87,8 @@ websocket_message_ask(struct connection *c, u_int8_t op, void *data, size_t len)
 		kore_log(LOG_NOTICE, "from /ask got %s", data);
 		sprintf(topic_to_ask, data);
 		kore_log(LOG_NOTICE, "topic_to_ask now %s\n", topic_to_ask);
-		pesan_return=rcvmsgq1(topic_to_ask);
-		if(pesan_return==NULL)
-			{kore_log(LOG_NOTICE, "Error publishing/getting msg to Queue server");}
+		pesan_return=get_redis(topic_to_ask);
+		if(!pesan_return) {kore_log(LOG_NOTICE, "Error Getting msg from Redis Server");}
 		kore_log(LOG_NOTICE, "Got msg from sender - %s", pesan_return);
 		free(topic_to_ask);
 		free(pesan_return);

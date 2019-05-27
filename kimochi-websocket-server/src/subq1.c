@@ -4,7 +4,8 @@
     Written by: Asharudin 'aviezab' Achzab
     First written date: 2019 05 25
     This file is granted without any warranty
-    gcc subq1.c natshighsend.c  -L/usr/local/lib -L. -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -o sub
+    gcc subq1.c natshighsend.c  -L/usr/local/lib -L. -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -lhiredis -o sub
+    gcc subq1.c natshighsend.c redishigh.c  -L/usr/local/lib -L. -I/usr/local/include -I/usr/local/include/hiredis  -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -lhiredis -o worker1
 */
 
 #include <stdlib.h>
@@ -12,9 +13,12 @@
 #include <stdio.h>
 #include <json-c/json.h>
 #include <nats/nats.h>
+
 #include "natshighsend.h"
+#include "redishigh.h"
 
 int sendmsgq1(char *pesan, char *topic);
+int put_redis(char *key, char *word);
 
 static void onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void *closure){
   struct  json_object *parsed_json;
@@ -30,15 +34,12 @@ static void onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void 
   // isi jdest dengan data dari key 'dest', lalu pindahkan ke char biasa supaya tidak remain struct
 	json_object_object_get_ex(parsed_json, "dest", &jdest);
   sprintf(dest_name, "%s", json_object_get_string(jdest));
-  // pring semua data
+  // print semua data
   printf("Dest: %s; From Topic: %s Msg: \n %s\n", dest_name, natsMsg_GetSubject(msg), buffmsg);
-  
-  /*
-  printf("Dest/ Received msg: %s - %s - %.*s\n -", dest, natsMsg_GetSubject(msg), 
-	                              natsMsg_GetDataLength(msg),
-                                      natsMsg_GetData(msg));
-  */
-  sendmsgq1(buffmsg, dest_name); 
+  // printf("Dest/ Received msg: %s - %s - %.*s\n -", dest, natsMsg_GetSubject(msg), natsMsg_GetDataLength(msg), natsMsg_GetData(msg));
+
+  //sendmsgq1(buffmsg, dest_name); 
+  put_redis(dest_name, buffmsg);
   free(buffmsg);
   free(dest_name);
   sleep(2);
