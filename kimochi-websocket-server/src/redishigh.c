@@ -1,7 +1,7 @@
 /*
     C File redishigh.c
     Written by: Asharudin 'aviezab' Achzab
-    First written date: 2019 05 26
+    First written date: 2019 05 27
     This file is granted without any warranty
     -lhiredis
 */
@@ -46,12 +46,30 @@ ping_redis()
 }
 
 int
+redis_check(char *key)
+{
+    redis_init();
+    char *buffr=NULL;
+    int errb=1000;
+    buffr=(char *) malloc(25000);
+    sprintf(buffr, "EXISTS %s", key);
+    reply = redisCommand(red, buffr);
+    errb=reply->integer;
+    //printf("Err number: %d\n", errb);
+    freeReplyObject(reply);
+    free(buffr);
+    redisFree(red);
+    return errb;
+}
+
+int
 put_redis(char *key, char *word)
 {
     redis_init();
     char *buffr=NULL;
-    buffr=(char *) malloc(200);
-    sprintf(buffr, "LPUSH %s %s", key, word);
+    buffr=(char *) malloc(250000);
+    sprintf(buffr, "LPUSH %s \"%s\"", key, word);
+    // printf("Push buffr %s\n", buffr);
     reply = redisCommand(red,buffr);
     printf("Redis PUSH status: %lld\n", reply->integer);
     freeReplyObject(reply);
@@ -65,11 +83,19 @@ char
 {
     redis_init();
     char *buffr=NULL;
-    buffr=(char *) malloc(200);
+    char *balasan=NULL;
+    int errb=1000;
+    buffr=(char *) malloc(25000);
+    balasan=(char *) malloc(25000);
     sprintf(buffr, "RPOP %s", key);
     reply = redisCommand(red, buffr);
-    printf("Redis POP %s: %s\n", buffr, reply->str);
+    sprintf(balasan, "%s", reply->str);
+    //errb=reply->integer;
+    //printf("Err number: %d\n", errb);
+    // printf("Redis POP %s: %s\n", buffr, balasan);
+    // printf("balasan: %s\n", balasan);
     freeReplyObject(reply);
     free(buffr);
     redisFree(red);
+    return balasan;
 }

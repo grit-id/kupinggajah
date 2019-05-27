@@ -6,6 +6,7 @@
 */
 #include <kore/kore.h>
 #include <kore/http.h>
+#include <string.h>
 
 #include "natshighsend.h"
 #include "natshighrcv.h"
@@ -19,11 +20,10 @@ void		websocket_disconnect_ask(struct connection *);
 int			page_ws_connect(struct http_request *);
 int			page_ws_connect_ask(struct http_request *);
 void		websocket_message(struct connection *, u_int8_t, void *, size_t);
-// void websocket_ask_msg(struct connection *c, u_int8_t op, void *data, size_t len);
 void		websocket_message_ask(struct connection *, u_int8_t , void *, size_t);
 
 int sendmsgq1(char *pesan, char *topic);
-//char *rcvmsgq1(char *topic);
+int redis_check(char *key);
 char *get_redis(char *key);
 /* Dipanggil kapan pun saat ada koneksi websocket terhubung */
 
@@ -41,9 +41,13 @@ websocket_disconnect(struct connection *c){
 void
 websocket_message(struct connection *c, u_int8_t op, void *data, size_t len){
 	int status_send=0;
-	kore_log(LOG_NOTICE, "data   : %s ", data);
-	kore_log(LOG_NOTICE, "length : %zu ", len);
-	kore_log(LOG_NOTICE, "OP     : %d ", op);
+	char *propertiws = NULL;
+	propertiws = (char *) malloc(300000);
+	sprintf(propertiws, "\ndata : %s | length ask: %zu | OP ask: %d", data, len, op);
+	kore_log(LOG_NOTICE, "%s" ,propertiws);
+	//kore_log(LOG_NOTICE, "data   : %s ", data);
+	//kore_log(LOG_NOTICE, "length : %zu ", len);
+	//kore_log(LOG_NOTICE, "OP     : %d ", op);
 	char *pesan = NULL;
 	pesan = (char *) malloc(250000);
 	sprintf(pesan, data);
@@ -51,6 +55,7 @@ websocket_message(struct connection *c, u_int8_t op, void *data, size_t len){
 	if(status_send!=0)
 		{kore_log(LOG_NOTICE, "Error publishing msg to Queue server");}
 	free(pesan);
+	free(propertiws);
 }
 
 int
@@ -76,22 +81,32 @@ websocket_disconnect_ask(struct connection *c){
 
 void
 websocket_message_ask(struct connection *c, u_int8_t op, void *data, size_t len){
-	kore_log(LOG_NOTICE, "data ask   : %s ", data);
-	kore_log(LOG_NOTICE, "length ask : %zu ", len);
-	kore_log(LOG_NOTICE, "OP ask     : %d ", op);
+	char *propertiws = NULL;
+	propertiws = (char *) malloc(300000);
+	sprintf(propertiws, "\ndata ask: %s | length ask: %zu | OP ask: %d", data, len, op);
+	kore_log(LOG_NOTICE, "%s" ,propertiws);
 	char *topic_to_ask = NULL;
 	char *pesan_return = NULL;
+	int errorga=0;
 	topic_to_ask = (char *) malloc(1000);
-	pesan_return = (char *) malloc(250000);
 	if (data){
+		strcpy(topic_to_ask, data);
 		kore_log(LOG_NOTICE, "from /ask got %s", data);
-		sprintf(topic_to_ask, data);
 		kore_log(LOG_NOTICE, "topic_to_ask now %s\n", topic_to_ask);
-		pesan_return=get_redis(topic_to_ask);
-		if(!pesan_return) {kore_log(LOG_NOTICE, "Error Getting msg from Redis Server");}
-		kore_log(LOG_NOTICE, "Got msg from sender - %s", pesan_return);
+		errorga=redis_check(topic_to_ask);
+		if(errorga==1)
+		{
+			pesan_return=get_redis(topic_to_ask);
+			if(pesan_return==NULL) {kore_log(LOG_NOTICE, "Error Getting msg from Redis Server");}
+			kore_log(LOG_NOTICE, "Got msg from sender - %s", pesan_return);
+		}
+		else
+		{
+			kore_log(LOG_NOTICE, "You don't have any msg");
+		}
 		free(topic_to_ask);
 		free(pesan_return);
+		free(propertiws);
 	}
 }
 
