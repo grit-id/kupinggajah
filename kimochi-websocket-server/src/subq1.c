@@ -47,7 +47,7 @@ onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void *closure){
     put_redis(dest_name, buffmsg);
     free(buffmsg);
     free(dest_name);
-    sleep(2);
+    usleep(100);
     natsMsg_Destroy(msg);
     return;
   exc:
@@ -70,7 +70,7 @@ main(int argc, char **argv){
   if (stat == NATS_OK) stat = natsSubscription_SetPendingLimits(sub, -1, -1);
   printf("Worker Queue Connection status: %s\n", natsStatus_GetText(stat));
 
-  sleep(58);
+  usleep(100);
   while (1);
 
   natsSubscription_Destroy(sub);

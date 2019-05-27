@@ -45,9 +45,6 @@ websocket_message(struct connection *c, u_int8_t op, void *data, size_t len){
 	propertiws = (char *) malloc(300000);
 	sprintf(propertiws, "\ndata : %s | length ask: %zu | OP ask: %d", data, len, op);
 	kore_log(LOG_NOTICE, "%s" ,propertiws);
-	//kore_log(LOG_NOTICE, "data   : %s ", data);
-	//kore_log(LOG_NOTICE, "length : %zu ", len);
-	//kore_log(LOG_NOTICE, "OP     : %d ", op);
 	char *pesan = NULL;
 	pesan = (char *) malloc(250000);
 	sprintf(pesan, data);
@@ -94,20 +91,27 @@ websocket_message_ask(struct connection *c, u_int8_t op, void *data, size_t len)
 		kore_log(LOG_NOTICE, "from /ask got %s", data);
 		kore_log(LOG_NOTICE, "topic_to_ask now %s\n", topic_to_ask);
 		errorga=redis_check(topic_to_ask);
-		if(errorga==1)
+		while(errorga==1)
 		{
 			pesan_return=get_redis(topic_to_ask);
 			if(pesan_return==NULL) {kore_log(LOG_NOTICE, "Error Getting msg from Redis Server");}
 			kore_log(LOG_NOTICE, "Got msg from sender - %s", pesan_return);
+			size_t pjg_pesan_return = strlen(pesan_return);
+			kore_websocket_broadcast(c, op, pesan_return, pjg_pesan_return, WEBSOCKET_BROADCAST_GLOBAL);
+			errorga=redis_check(topic_to_ask);
+			printf("%d", errorga);
+			if (pesan_return != NULL) free(pesan_return); pesan_return = NULL;
 		}
-		else
-		{
+		
+		errorga=redis_check(topic_to_ask);
+		if(errorga!=1)
+		{	
 			kore_log(LOG_NOTICE, "You don't have any msg");
+			if (pesan_return != NULL) free(pesan_return); pesan_return = NULL;
 		}
-		free(topic_to_ask);
-		free(pesan_return);
-		free(propertiws);
 	}
+	free(topic_to_ask);
+	free(propertiws);
 }
 
 int

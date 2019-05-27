@@ -50,12 +50,12 @@ redis_check(char *key)
 {
     redis_init();
     char *buffr=NULL;
-    int errb=1000;
+    int errb=0;
     buffr=(char *) malloc(25000);
     sprintf(buffr, "EXISTS %s", key);
     reply = redisCommand(red, buffr);
     errb=reply->integer;
-    //printf("Err number: %d\n", errb);
+    // printf("Err number: %d\n", errb);
     freeReplyObject(reply);
     free(buffr);
     redisFree(red);
@@ -84,16 +84,18 @@ char
     redis_init();
     char *buffr=NULL;
     char *balasan=NULL;
-    int errb=1000;
     buffr=(char *) malloc(25000);
     balasan=(char *) malloc(25000);
     sprintf(buffr, "RPOP %s", key);
     reply = redisCommand(red, buffr);
     sprintf(balasan, "%s", reply->str);
-    //errb=reply->integer;
-    //printf("Err number: %d\n", errb);
-    // printf("Redis POP %s: %s\n", buffr, balasan);
-    // printf("balasan: %s\n", balasan);
+    /*  Printf Debugging
+        int errb=1000;
+        errb=reply->integer;
+        printf("Err number: %d\n", errb);
+        printf("Redis POP %s: %s\n", buffr, balasan);
+        printf("balasan: %s\n", balasan);
+    */
     freeReplyObject(reply);
     free(buffr);
     redisFree(red);
