@@ -42,11 +42,11 @@ void
 websocket_message(struct connection *c, u_int8_t op, void *data, size_t len){
 	int status_send=0;
 	char *propertiws = NULL;
-	propertiws = (char *) malloc(300000);
-	sprintf(propertiws, "\ndata : %s | length ask: %zu | OP ask: %d", data, len, op);
+	propertiws = (char *) malloc(50 + len);
+	sprintf(propertiws, "\nData : %s | length ask: %zu | OP ask: %d", data, len, op);
 	kore_log(LOG_NOTICE, "%s" ,propertiws);
 	char *pesan = NULL;
-	pesan = (char *) malloc(250000);
+	pesan = (char *) malloc(len + 1);
 	sprintf(pesan, data);
 	status_send=sendmsgq1(pesan, "topic");
 	if(status_send!=0)
@@ -79,12 +79,12 @@ websocket_disconnect_ask(struct connection *c){
 void
 websocket_message_ask(struct connection *c, u_int8_t op, void *data, size_t len){
 	char *propertiws = NULL;
-	propertiws = (char *) malloc(300000);
-	sprintf(propertiws, "\ndata ask: %s | length ask: %zu | OP ask: %d", data, len, op);
-	kore_log(LOG_NOTICE, "%s" ,propertiws);
 	char *topic_to_ask = NULL;
 	char *pesan_return = NULL;
 	int errorga=0;
+	propertiws = (char *) malloc(50 + len);
+	sprintf(propertiws, "\nData ask: %s | length ask: %zu | OP ask: %d", data, len, op);
+	kore_log(LOG_NOTICE, "%s" ,propertiws);
 	topic_to_ask = (char *) malloc(1000);
 	if (data){
 		strcpy(topic_to_ask, data);
@@ -99,11 +99,14 @@ websocket_message_ask(struct connection *c, u_int8_t op, void *data, size_t len)
 			size_t pjg_pesan_return = strlen(pesan_return);
 			kore_websocket_broadcast(c, op, pesan_return, pjg_pesan_return, WEBSOCKET_BROADCAST_GLOBAL);
 			errorga=redis_check(topic_to_ask);
-			printf("%d", errorga);
 			if (pesan_return != NULL) free(pesan_return); pesan_return = NULL;
 		}
 		
 		errorga=redis_check(topic_to_ask);
+		if (errorga==-1)
+		{
+			kore_log(LOG_NOTICE, "Redis connection error!\n");
+		}
 		if(errorga!=1)
 		{	
 			kore_log(LOG_NOTICE, "You don't have any msg");

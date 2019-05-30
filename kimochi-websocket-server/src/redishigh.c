@@ -13,13 +13,14 @@
 #include <hiredis.h>
 
 // -----VARIABLES-----
+char *buffrp=NULL;
 redisContext *red;
 redisReply *reply;
 const char *hostname = "127.0.0.1";
 int port = 6379;
 struct timeval timeout = { 1, 500000 }; // 1.5 seconds
 
-void
+int
 redis_init()
 {
     red = redisConnectWithTimeout(hostname, port, timeout);
@@ -27,17 +28,23 @@ redis_init()
         if (red) {
             printf("Connection error: %s\n", red->errstr);
             redisFree(red);
+            return -1;
         } else {
             printf("Connection error: can't allocate redis context\n");
+            return -1;
         }
-        exit(1);
+        //exit(1);
     }
+    return 0;
 }
 
 int
 ping_redis()
 {
-    redis_init();
+    if (redis_init()!=0)
+        {
+            return -1;
+        }
     reply = redisCommand(red,"PING");
     printf("Redis PING: %s\n", reply->str);
     freeReplyObject(reply);
@@ -48,7 +55,10 @@ ping_redis()
 int
 redis_check(char *key)
 {
-    redis_init();
+    if (redis_init()!=0)
+    {
+        return -1;
+    }
     char *buffr=NULL;
     int errb=0;
     buffr=(char *) malloc(25000);
@@ -65,29 +75,63 @@ redis_check(char *key)
 int
 put_redis(char *key, char *word)
 {
-    redis_init();
-    char *buffr=NULL;
-    buffr=(char *) malloc(250000);
-    sprintf(buffr, "LPUSH %s \"%s\"", key, word);
+    if (redis_init()!=0)
+    {
+        return -1;
+    }
+    unsigned long pjg_word;
+    pjg_word= (unsigned long) strlen(word);
+    // Sesuaikan besar memory dengan pesan yang ingin disimpan.
+    // printf("size pesan: %lu\n", strlen(word));
+    // buffrp=(char *) malloc(300000);
+    buffrp = (char *) realloc(buffrp, pjg_word * sizeof(char) + 1 );
+    //buffrp = (char *) realloc(buffrp, pjg_word);
+    sprintf(buffrp, "LPUSH %s \"%s\"", key, word);
     // printf("Push buffr %s\n", buffr);
-    reply = redisCommand(red,buffr);
+    reply = redisCommand(red,buffrp);
     printf("Redis PUSH status: %lld\n", reply->integer);
     freeReplyObject(reply);
     redisFree(red);
-    free(buffr);
+    free(buffrp);
     return 0;
 }
+
+/*
+char
+*putn_redis(char *key, char *word, int wordlong)
+{
+    if (redis_init()!=0)
+    {
+        return "";
+    }
+    char *buffrnp=NULL;
+    buffrnp = (char *) malloc(wordlong * sizeof(char) +1);
+    if (buffrnp == NULL) printf("Gagal malloc");
+    sprintf(buffrnp, "LPUSH %s \"%s\"", key, word);
+    // printf("Push buffr %s\n", buffr);
+    reply = redisCommand(red,buffrnp);
+    printf("Redis PUSH status: %lld\n", reply->integer);
+    freeReplyObject(reply);
+    redisFree(red);
+    return buffrnp;
+}
+*/
 
 char
 *get_redis(char *key)
 {
-    redis_init();
+if (redis_init()!=0)
+    {
+        return "";
+    }
     char *buffr=NULL;
     char *balasan=NULL;
-    buffr=(char *) malloc(25000);
-    balasan=(char *) malloc(25000);
+    // topic hanya maksimum 1000 character
+    buffr=(char *) malloc(1010);
     sprintf(buffr, "RPOP %s", key);
     reply = redisCommand(red, buffr);
+    // membuat besar balasan di memory sesuai besar pesan yang diambil di MQ2
+    balasan=(char *) malloc(strlen(reply->str) + 1 );
     sprintf(balasan, "%s", reply->str);
     /*  Printf Debugging
         int errb=1000;

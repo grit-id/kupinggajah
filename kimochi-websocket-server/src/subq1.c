@@ -8,6 +8,7 @@
     gcc subq1.c natshighsend.c redishigh.c  -L/usr/local/lib -L. -I/usr/local/include -I/usr/local/include/hiredis  -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -lhiredis -o worker1
 */
 
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -29,7 +30,8 @@ onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void *closure){
     char *buffmsg=NULL;
     char *dest_name;
     int err=0;
-    buffmsg = (char *) malloc(250000); // agar tidak segment fault
+    printf("nats msg size: %d size: %d\n", natsMsg_GetDataLength(msg), sizeof(char));
+    buffmsg = (char *) malloc(natsMsg_GetDataLength(msg) * sizeof(char) + 1); // agar tidak segment fault
     dest_name = (char *) malloc(1000);
     // isi buffmsg dengan data string dari natsMsg. gunakan .*%s untuk data yg memiliki length
     //sprintf(buffmsg, "%.*s", natsMsg_GetDataLength(msg), natsMsg_GetData(msg)); //sama saja dengan strncpy
@@ -70,8 +72,8 @@ main(int argc, char **argv){
   if (stat == NATS_OK) stat = natsSubscription_SetPendingLimits(sub, -1, -1);
   printf("Worker Queue Connection status: %s\n", natsStatus_GetText(stat));
 
-  usleep(100);
-  while (1);
+  while (1)
+    usleep(100); //Jalankan per-100microseconds sekali untuk mengurangi beban CPU
 
   natsSubscription_Destroy(sub);
   natsConnection_Destroy(conn);

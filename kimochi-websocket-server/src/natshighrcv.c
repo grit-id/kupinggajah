@@ -1,3 +1,9 @@
+/*
+    C File natshighrcv.c
+    Written by: Asharudin 'aviezab' Achzab
+    First written date: 2019 05 26
+    This file is granted without any warranty
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <nats/nats.h>
