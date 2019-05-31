@@ -8,14 +8,12 @@
     gcc subq1.c natshighsend.c redishigh.c  -L/usr/local/lib -L. -I/usr/local/include -I/usr/local/include/hiredis  -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -lhiredis -o worker1
 */
 
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <json-c/json.h>
 #include <nats/nats.h>
 #include <string.h>
-#include <setjmp.h>
 
 #include "natshighsend.h"
 #include "redishigh.h"
@@ -30,7 +28,6 @@ onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void *closure){
     char *buffmsg=NULL;
     char *dest_name;
     int err=0;
-    printf("nats msg size: %d size: %d\n", natsMsg_GetDataLength(msg), sizeof(char));
     buffmsg = (char *) malloc(natsMsg_GetDataLength(msg) * sizeof(char) + 1); // agar tidak segment fault
     dest_name = (char *) malloc(1000);
     // isi buffmsg dengan data string dari natsMsg. gunakan .*%s untuk data yg memiliki length

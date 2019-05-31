@@ -13,7 +13,6 @@
 #include <hiredis.h>
 
 // -----VARIABLES-----
-char *buffrp=NULL;
 redisContext *red;
 redisReply *reply;
 const char *hostname = "127.0.0.1";
@@ -33,7 +32,6 @@ redis_init()
             printf("Connection error: can't allocate redis context\n");
             return -1;
         }
-        //exit(1);
     }
     return 0;
 }
@@ -79,13 +77,9 @@ put_redis(char *key, char *word)
     {
         return -1;
     }
-    unsigned long pjg_word;
-    pjg_word= (unsigned long) strlen(word);
     // Sesuaikan besar memory dengan pesan yang ingin disimpan.
-    // printf("size pesan: %lu\n", strlen(word));
-    // buffrp=(char *) malloc(300000);
-    buffrp = (char *) realloc(buffrp, pjg_word * sizeof(char) + 1 );
-    //buffrp = (char *) realloc(buffrp, pjg_word);
+    char *buffrp=NULL;
+    buffrp = (char *) realloc(buffrp, strlen(key) + strlen(word) * sizeof(char) + 10 );
     sprintf(buffrp, "LPUSH %s \"%s\"", key, word);
     // printf("Push buffr %s\n", buffr);
     reply = redisCommand(red,buffrp);
@@ -95,27 +89,6 @@ put_redis(char *key, char *word)
     free(buffrp);
     return 0;
 }
-
-/*
-char
-*putn_redis(char *key, char *word, int wordlong)
-{
-    if (redis_init()!=0)
-    {
-        return "";
-    }
-    char *buffrnp=NULL;
-    buffrnp = (char *) malloc(wordlong * sizeof(char) +1);
-    if (buffrnp == NULL) printf("Gagal malloc");
-    sprintf(buffrnp, "LPUSH %s \"%s\"", key, word);
-    // printf("Push buffr %s\n", buffr);
-    reply = redisCommand(red,buffrnp);
-    printf("Redis PUSH status: %lld\n", reply->integer);
-    freeReplyObject(reply);
-    redisFree(red);
-    return buffrnp;
-}
-*/
 
 char
 *get_redis(char *key)
