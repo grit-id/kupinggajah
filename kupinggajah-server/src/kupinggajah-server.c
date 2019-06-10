@@ -1,9 +1,10 @@
 /*
-    Main C File Kimochi Server
+    Main C File kupinggajah Server
     Written by: Asharudin 'aviezab' Achzab, Anas 'Nicabreon'
     First written date: 2019 05 25
     This file is granted without any warranty
 */
+
 #include <kore/kore.h>
 #include <kore/http.h>
 #include <string.h>

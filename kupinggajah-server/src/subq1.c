@@ -1,5 +1,5 @@
 /*
-    WORKER FILE! SHOULD COMPILED SEPARATELY
+    WORKER FILE! SHOULD BE COMPILED SEPARATELY
     C File subq1.c
     Written by: Asharudin 'aviezab' Achzab
     First written date: 2019 05 25
