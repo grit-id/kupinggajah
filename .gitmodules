@@ -1,0 +1,12 @@
+[submodule "kore"]
+	path = kore
+	url = https://github.com/jorisvink/kore.git
+[submodule "nats.c"]
+	path = nats.c
+	url = https://github.com/nats-io/nats.c.git
+[submodule "hiredis"]
+	path = hiredis
+	url = https://github.com/redis/hiredis.git
+[submodule "json-c"]
+	path = json-c
+	url = https://github.com/json-c/json-c.git
