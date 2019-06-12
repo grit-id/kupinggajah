@@ -1,5 +1,8 @@
 # Kupinggajah
 ## Indonesian Open Source Secure Chat Platform: Chat Server
+Motivasi pembuatan Kupinggajah:
+
+Menyediakan chat platform yang sepenuhnya terbuka sehingga bebas digunakan dan dimodifikasi baik oleh kepentingan perorangan atau suatu instansi tanpa perlu membuat codebase chat platform dari awal.
 
 ### Dependencies:
 C Libraries/ Binaries Distributions
@@ -32,6 +35,14 @@ sudo systemctl start redis
 ```
 
 Clone repository beserta dependensi, compile dan install di sistem anda.
+
+Catatan tentang versi pada dependendensi:
+```
+Kore 3.3.1
+NATS C June 2, 2019
+Hiredis 1.0
+Json-C June 10, 2019
+```
 ```bash
 git clone --recurse-submodules https://github.com/aviezab/kupinggajah.git
 
