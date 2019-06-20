@@ -5,9 +5,22 @@
     This file is granted without any warranty
 */
 
+/* Definisi MACRO untuk debugging.
+ * apabila iya, maka log dan printf ditampilkan.
+ */
+#ifdef DEBUG
+#define DEBUGGING_ 1
+#else
+#define DEBUGGING_ 0
+#endif
+#define KGAJAH_MQ2_ERR "{\"kgajah\":\"MQ2_connection_error\"}"
+#define KGAJAH_USERMSG_NULL "{\"kgajah\":\"msgnull\"}"
+
+#include <string.h>
+#include <unistd.h>
 #include <kore/kore.h>
 #include <kore/http.h>
-#include <string.h>
+
 
 #include "natshighsend.h"
 #include "natshighrcv.h"
@@ -26,17 +39,27 @@ void		websocket_message_ask(struct connection *, u_int8_t , void *, size_t);
 int sendmsgq1(char *pesan, char *topic);
 int redis_check(char *key);
 char *get_redis(char *key);
+void is_debug_print(void *, void *);
+
 /* Dipanggil kapan pun saat ada koneksi websocket terhubung */
+
+void is_debug_print(void *pesan_debug1, void *pesan_debug2){
+	if(DEBUGGING_ == 1) {
+		kore_log(LOG_NOTICE, "%s : %s", (char *) pesan_debug1, (char *) pesan_debug2 );
+	}
+}
 
 /* Connect End Point start */
 void
 websocket_connect(struct connection *c){
-	kore_log(LOG_NOTICE, "%p: connected", c);
+	//kore_log(LOG_NOTICE, "%p: connected", c);
+	is_debug_print("Connected", c);
 }
 
 void
 websocket_disconnect(struct connection *c){
-	kore_log(LOG_NOTICE, "%p: disconnecting", c);
+	//kore_log(LOG_NOTICE, "%p: disconnecting", c);
+	is_debug_print("Disconnecting", c);
 }
 
 void
@@ -44,11 +67,12 @@ websocket_message(struct connection *c, u_int8_t op, void *data, size_t len){
 	int status_send=0;
 	char *propertiws = NULL;
 	propertiws = (char *) malloc(50 + len);
-	sprintf(propertiws, "\nData : %s | length ask: %zu | OP ask: %d", data, len, op);
-	kore_log(LOG_NOTICE, "%s" ,propertiws);
+	sprintf(propertiws, "\nData : %p | length ask: %zu | OP ask: %d", data, len, op);
+	//kore_log(LOG_NOTICE, "%s" ,propertiws);
+	is_debug_print("Pr WS", propertiws);
 	char *pesan = NULL;
 	pesan = (char *) malloc(len + 1);
-	sprintf(pesan, data);
+	strcpy(pesan, data);
 	status_send=sendmsgq1(pesan, "topic");
 	if(status_send!=0)
 		{kore_log(LOG_NOTICE, "Error publishing msg to Queue server");}
@@ -69,12 +93,14 @@ page_ws_connect(struct http_request *req){
 /* Ask End Point start*/
 void
 websocket_connect_ask(struct connection *c){
-	kore_log(LOG_NOTICE, "%p: connected ask", c);
+	//kore_log(LOG_NOTICE, "%p: connected ask", c);
+	is_debug_print("Connected", c);
 }
 
 void
 websocket_disconnect_ask(struct connection *c){
-	kore_log(LOG_NOTICE, "%p: disconnecting ask", c);
+	//kore_log(LOG_NOTICE, "%p: disconnecting ask", c);
+	is_debug_print("Disconnecting", c);
 }
 
 void
@@ -84,34 +110,44 @@ websocket_message_ask(struct connection *c, u_int8_t op, void *data, size_t len)
 	char *pesan_return = NULL;
 	int errorga=0;
 	propertiws = (char *) malloc(50 + len);
-	sprintf(propertiws, "\nData ask: %s | length ask: %zu | OP ask: %d", data, len, op);
-	kore_log(LOG_NOTICE, "%s" ,propertiws);
+	sprintf(propertiws, "\nData ask: %p | length ask: %zu | OP ask: %d", data, len, op);
+	//kore_log(LOG_NOTICE, "%s" ,propertiws);
+	is_debug_print("Pr WS", propertiws);
 	topic_to_ask = (char *) malloc(1000);
 	if (data){
 		strcpy(topic_to_ask, data);
-		kore_log(LOG_NOTICE, "from /ask got %s", data);
-		kore_log(LOG_NOTICE, "topic_to_ask now %s\n", topic_to_ask);
+		is_debug_print("From /ask got", data);
+		is_debug_print("topic_to_ask is now", topic_to_ask);
+		//kore_log(LOG_NOTICE, "from /ask got %p", data);
+		//kore_log(LOG_NOTICE, "topic_to_ask now %s\n", topic_to_ask);
 		errorga=redis_check(topic_to_ask);
 		while(errorga==1)
 		{
 			pesan_return=get_redis(topic_to_ask);
 			if(pesan_return==NULL) {kore_log(LOG_NOTICE, "Error Getting msg from Redis Server");}
-			kore_log(LOG_NOTICE, "Got msg from sender - %s", pesan_return);
+			is_debug_print("Got msg from sender", pesan_return);
+			//kore_log(LOG_NOTICE, "Got msg from sender - %s", pesan_return);
 			size_t pjg_pesan_return = strlen(pesan_return);
+			// Kirim semua pesan ke pengguna tujuan setiap 10 mikrodetik
 			kore_websocket_broadcast(c, op, pesan_return, pjg_pesan_return, WEBSOCKET_BROADCAST_GLOBAL);
+			usleep(10);
 			errorga=redis_check(topic_to_ask);
-			if (pesan_return != NULL) free(pesan_return); pesan_return = NULL;
+			if (pesan_return != NULL) {free(pesan_return); pesan_return = NULL;}
 		}
 		
 		errorga=redis_check(topic_to_ask);
 		if (errorga==-1)
 		{
-			kore_log(LOG_NOTICE, "Redis connection error!\n");
+			//kore_log(LOG_NOTICE, "Redis connection error!\n");
+			is_debug_print("Error","Redis Connection");
+			kore_websocket_broadcast(c, op, KGAJAH_MQ2_ERR, strlen(KGAJAH_MQ2_ERR), WEBSOCKET_BROADCAST_GLOBAL);
 		}
 		if(errorga!=1)
 		{	
-			kore_log(LOG_NOTICE, "You don't have any msg");
-			if (pesan_return != NULL) free(pesan_return); pesan_return = NULL;
+			//kore_log(LOG_NOTICE, "You don't have any msg");
+			is_debug_print(data,"doesn't have any msg");
+			kore_websocket_broadcast(c, op, KGAJAH_USERMSG_NULL, strlen(KGAJAH_USERMSG_NULL), WEBSOCKET_BROADCAST_GLOBAL);
+			if (pesan_return != NULL) {free(pesan_return); pesan_return = NULL;}
 		}
 	}
 	free(topic_to_ask);

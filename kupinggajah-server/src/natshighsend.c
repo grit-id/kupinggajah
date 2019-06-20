@@ -13,8 +13,12 @@ natsConnection      *nconns;
 natsSubscription    *sub;
 natsMsg             *msg;
 
+
+// Deklarasi Prototipe
+int sendmsgq1(char *, char *);
+
 void
-runnit(){
+runnit(void){
     nconns  = NULL;
     sub = NULL;
     msg = NULL;
@@ -22,7 +26,7 @@ runnit(){
 }
 
 
-// Function untuk kirim pesan
+// Function untuk kirim pesan ke MQ1
 int
 sendmsgq1(char *pesan, char *topic){
     runnit();

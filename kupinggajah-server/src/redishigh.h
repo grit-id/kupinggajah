@@ -10,7 +10,7 @@
 
 #include <hiredis.h>
 
-extern int ping_redis();
+extern int ping_redis(void);
 extern int redis_check(char *key);
 extern int put_redis(char *key, char *word);
 extern char *get_redis(char *key);

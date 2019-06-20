@@ -19,8 +19,14 @@ const char *hostname = "127.0.0.1";
 int port = 6379;
 struct timeval timeout = { 1, 500000 }; // 1.5 seconds
 
+// Deklarasi Prototipe
+int redis_check(char *);
+int put_redis(char *, char *);
+char *get_redis(char *);
+
+// Fungsi untuk inisiasi MQ2
 int
-redis_init()
+redis_init(void)
 {
     red = redisConnectWithTimeout(hostname, port, timeout);
     if (red == NULL || red->err) {
@@ -36,8 +42,9 @@ redis_init()
     return 0;
 }
 
+// Fungsi untuk nyolek MQ2
 int
-ping_redis()
+ping_redis(void)
 {
     if (redis_init()!=0)
         {
@@ -50,6 +57,7 @@ ping_redis()
     return 0;
 }
 
+// Fungsi untuk cek key di MQ2 ada atau tidak
 int
 redis_check(char *key)
 {
@@ -70,6 +78,7 @@ redis_check(char *key)
     return errb;
 }
 
+// Fungsi untuk naruh tumpukan pesan di MQ2
 int
 put_redis(char *key, char *word)
 {
@@ -90,6 +99,7 @@ put_redis(char *key, char *word)
     return 0;
 }
 
+// Fungsi untuk ambil tumpukan pesan di MQ2
 char
 *get_redis(char *key)
 {
