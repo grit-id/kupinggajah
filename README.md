@@ -1,5 +1,8 @@
 # Kupinggajah
 ## Indonesian Open Source Secure Chat Platform: Chat Server
+Motivasi pembuatan Kupinggajah:
+
+Menyediakan chat platform yang sepenuhnya terbuka sehingga bebas digunakan dan dimodifikasi baik oleh kepentingan perorangan atau suatu instansi tanpa perlu membuat codebase chat platform dari awal.
 
 ### Dependencies:
 C Libraries/ Binaries Distributions
@@ -31,45 +34,58 @@ chmod +x nats-streaming-server
 sudo systemctl start redis
 ```
 
-Salin semua dependensi, compile dan install di sistem anda.
+Clone repository beserta dependensi, compile dan install di sistem anda.
+
+Catatan tentang versi pada dependendensi:
+```
+Kore 3.3.1
+NATS C June 2, 2019
+Hiredis 1.0
+Json-C June 10, 2019
+```
 ```bash
-git clone https://github.com/jorisvink/kore.git     # Kore 3.3.1
-git clone https://github.com/nats-io/nats.c.git     # NATS C June 2, 2019
-git clone https://github.com/redis/hiredis.git      # Hiredis 1.0
-git clone https://github.com/json-c/json-c.git      # Json-C June 10, 2019
+git clone --recurse-submodules https://github.com/aviezab/kupinggajah.git
+
+cd kupinggajah
 
 cd kore
 export NOTLS=1
 make
 sudo make install
 
-cd ../nats.c
+cd ../
+
+cd nats.c
 mkdir build
 cd build
 cmake .. -DNATS_BUILD_WITH_TLS=OFF -DNATS_BUILD_STREAMING=OFF #(hilangkan -DNATS_BUILD_STREAMING=OFF jika anda menginginkan untuk dukungan fitur nats-streaming-server yang tidak ada di gnatsd)
 make
 sudo make install
 
-cd ../../hiredis
+cd ../
+
+cd hiredis
 mkdir build
 cd build
 cmake ..
 make
 sudo make install
 
-cd ../../json-c
+cd ../
+
+cd json-c
 sh autogen.sh
 ./configure
 make
 sudo make install
+
+cd ../
 
 # Finishing
 sudo ldconfig
 ```
 Untuk menjalankan Server Kupinggajah, pastikan firewall anda allow port 30000
 ```bash
-git clone https://github.com/aviezab/kupinggajah.git
-cd kupinggajah/kupinggajah-server
 kodev clean && kodev run
 ```
 
