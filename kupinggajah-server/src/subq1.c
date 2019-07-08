@@ -4,8 +4,7 @@
     Written by: Asharudin 'aviezab' Achzab
     First written date: 2019 05 25
     This file is granted without any warranty
-    gcc subq1.c natshighsend.c  -L/usr/local/lib -L. -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -lhiredis -o sub
-    gcc subq1.c natshighsend.c redishigh.c  -L/usr/local/lib -L. -I/usr/local/include -I/usr/local/include/hiredis  -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -lhiredis -o worker1
+    gcc subq1.c natshighsend.c redishigh.c kupinggajah.c   -L/usr/local/lib -L. -I/usr/local/include -I/usr/local/include/hiredis  -Wl,--as-needed -ldl -lnats -lpthread -lprotobuf -ljson-c -lhiredis -o worker1
 */
 
 #include <stdlib.h>
@@ -17,9 +16,11 @@
 
 #include "natshighsend.h"
 #include "redishigh.h"
+#include "kupinggajah.h"
 
 int sendmsgq1(char *pesan, char *topic);
 int put_redis(char *key, char *word);
+void str_append(char subject[], const char insert[], int pos);
 
 static void
 onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void *closure){
@@ -31,10 +32,10 @@ onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void *closure){
     buffmsg = (char *) malloc(natsMsg_GetDataLength(msg) * sizeof(char) + 1); // agar tidak segment fault
     dest_name = (char *) malloc(1000);
     // isi buffmsg dengan data string dari natsMsg. gunakan .*%s untuk data yg memiliki length
-    //sprintf(buffmsg, "%.*s", natsMsg_GetDataLength(msg), natsMsg_GetData(msg)); //sama saja dengan strncpy
-    strncpy(buffmsg, natsMsg_GetData(msg), natsMsg_GetDataLength(msg));
+    // sprintf(buffmsg, "%.*s", natsMsg_GetDataLength(msg), natsMsg_GetData(msg)); //sama saja dengan strncpy
+    // karena akan di str_append menggunakan dua buah " dan 1 buah \0 maka, +3
+    strncpy(buffmsg, natsMsg_GetData(msg), natsMsg_GetDataLength(msg) + 3);
     parsed_json = json_tokener_parse(buffmsg);
-
     // isi jdest dengan data dari key 'dest', lalu pindahkan ke char biasa supaya tidak remain struct
     err=json_object_object_get_ex(parsed_json, "dest", &jdest);
     // Kalau error dihandle oleh exception
@@ -42,7 +43,8 @@ onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void *closure){
     sprintf(dest_name, "%s", json_object_get_string(jdest));
     // print semua data
     printf("Dest: %s; From Topic: %s Msg: \n %s\n", dest_name, natsMsg_GetSubject(msg), buffmsg);
-
+    str_append(buffmsg, "\"", 0);
+	  str_append(buffmsg, "\"", strlen(buffmsg));
     put_redis(dest_name, buffmsg);
     free(buffmsg);
     free(dest_name);

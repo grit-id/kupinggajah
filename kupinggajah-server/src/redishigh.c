@@ -20,6 +20,8 @@ int port = 6379;
 struct timeval timeout = { 1, 500000 }; // 1.5 seconds
 
 // Deklarasi Prototipe
+int redis_init(void);
+int ping_redis(void);
 int redis_check(char *);
 int put_redis(char *, char *);
 char *get_redis(char *);
@@ -87,15 +89,10 @@ put_redis(char *key, char *word)
         return -1;
     }
     // Sesuaikan besar memory dengan pesan yang ingin disimpan.
-    char *buffrp=NULL;
-    buffrp = (char *) realloc(buffrp, strlen(key) + strlen(word) * sizeof(char) + 10 );
-    sprintf(buffrp, "LPUSH %s \"%s\"", key, word);
-    // printf("Push buffr %s\n", buffr);
-    reply = redisCommand(red,buffrp);
+    reply = redisCommand(red, "LPUSH %s \"%s\"", key, word);
     printf("Redis PUSH status: %lld\n", reply->integer);
     freeReplyObject(reply);
     redisFree(red);
-    free(buffrp);
     return 0;
 }
 
@@ -116,13 +113,6 @@ if (redis_init()!=0)
     // membuat besar balasan di memory sesuai besar pesan yang diambil di MQ2
     balasan=(char *) malloc(strlen(reply->str) + 1 );
     sprintf(balasan, "%s", reply->str);
-    /*  Printf Debugging
-        int errb=1000;
-        errb=reply->integer;
-        printf("Err number: %d\n", errb);
-        printf("Redis POP %s: %s\n", buffr, balasan);
-        printf("balasan: %s\n", balasan);
-    */
     freeReplyObject(reply);
     free(buffr);
     redisFree(red);
